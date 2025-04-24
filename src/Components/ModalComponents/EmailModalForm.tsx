@@ -1,7 +1,7 @@
 import { Button, Form, Input, Modal, message } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import backendApi from '../../utils/api';
+import { backendApi } from '../../utils/api';
 
 const formItemLayout = {
   labelCol: {

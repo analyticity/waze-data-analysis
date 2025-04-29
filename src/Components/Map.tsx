@@ -31,6 +31,7 @@ type Props = {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   drawAlertsAnyway: any;
   buttonStyleAlerts: 'primary' | 'default';
+  useTrafficData: boolean;
 };
 
 const Map = ({
@@ -46,6 +47,7 @@ const Map = ({
   setMapMode,
   loading,
   setLoading,
+  useTrafficData,
 }: Props) => {
   const { t } = useTranslation();
   const { setNewStreetsInSelected, setNewStreetsInMap, setNewStreetsInRoute, streetsInRoute } =
@@ -93,7 +95,7 @@ const Map = ({
             };
             openNotification();
             setLoading(true);
-            const response = await get_route(last_two[0], last_two[1], filter);
+            const response = await get_route(last_two[0], last_two[1], { ...filter, use_traffic: useTrafficData });
 
             if (response.streets_coord.length < 1) {
               const removedCoord: Coord = coordinates.pop();

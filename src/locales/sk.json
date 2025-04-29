@@ -173,5 +173,7 @@
 
   "or": "alebo",
 
-  "clear.route": "Vymaž trasu"
+  "clear.route": "Vymaž trasu",
+
+  "traffic.useTrafficData": "Použiť dopravné dáta"
 }

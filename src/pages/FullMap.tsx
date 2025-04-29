@@ -12,7 +12,7 @@ import InfoModal from '../Components/ModalComponents/InfoModal';
 import Sidebar from '../Components/SidebarComponents/Sidebar';
 import 'leaflet/dist/leaflet.css';
 import ApplicationTour from '../Components/SidebarComponents/ApplicationTour';
-import { LoadingOutlined } from '@ant-design/icons';
+import { LoadingOutlined, HistoryOutlined } from '@ant-design/icons';
 import * as Icons from '../utils/icons';
 import { get_all_street_delays, get_all_street_alerts, get_streets_coord } from '../utils/backendApiRequests';
 
@@ -60,6 +60,7 @@ const FullMap = () => {
   const refDelays = useRef(null);
   const refAlerts = useRef(null);
   const refRouteSidebar = useRef(null);
+  const refTrafficData = useRef(null);
 
   const [openInfoModalState, setOpenInfoModalState] = useState<boolean>(false);
   const [openTour, setOpenTour] = useState<boolean>(false);
@@ -69,6 +70,7 @@ const FullMap = () => {
   const [buttonStyleAlerts, setButtonStyleAlerts] = useState<'default' | 'primary'>('default');
   const [buttonStyleAlertsDisabled, setButtonStyleAlertsDisabled] = useState<boolean>(false);
   const [mapMode, setMapMode] = useState<'route' | 'street' | 'nothing'>('street');
+  const [useTrafficData, setUseTrafficData] = useState<boolean>(false);
   const [api, contextHolder] = notification.useNotification({ stack: { threshold: 3 } });
   const [delayStreets, setDelayStreets] = useState<StreetInMap[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -116,7 +118,7 @@ const FullMap = () => {
     openNotification();
     var data;
     try {
-      data = await get_all_street_delays(filter, controller.current);
+      data = await get_all_street_delays({ ...filter, use_traffic: useTrafficData }, controller.current);
     } catch (error) {
       data = [];
       setNewFilter((prevData) => {
@@ -345,6 +347,15 @@ const FullMap = () => {
               {buttonStyle == 'primary' && t('route.button.active')}
               <RouteIcon />
             </Button>
+            <Button 
+              className="buttonRoute" 
+              type={useTrafficData ? 'primary' : 'default'}
+              onClick={() => setUseTrafficData(!useTrafficData)}
+              ref={refTrafficData}
+            >
+              <HistoryOutlined style={{ fontSize: 20 }} />
+              {t('traffic.useTrafficData')}
+            </Button>
             <Button
               ref={refDelays}
               className="buttonRoute"
@@ -380,6 +391,7 @@ const FullMap = () => {
             setLoading={setLoading}
             drawAlertsAnyway={drawAlertsAnyway}
             buttonStyleAlerts={buttonStyleAlerts}
+            useTrafficData={useTrafficData}
           />
 
           <div className="divTimelineOnMap">

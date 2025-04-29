@@ -129,6 +129,7 @@ export async function get_route(src_coord, dst_coord, filter: Filter) {
     dst_coord: [dst_coord.longitude, dst_coord.latitude],
     from_time: filter.fromDate,
     to_time: filter.toDate,
+    use_traffic: filter.use_traffic || false
   };
   const response = await routingApi.post('find_route_by_coord/', data_route);
 

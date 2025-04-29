@@ -173,5 +173,7 @@
 
   "or": "nebo",
 
-  "clear.route": "Smazat trasu"
+  "clear.route": "Smazat trasu",
+
+  "traffic.useTrafficData": "Použít dopravní data"
 }

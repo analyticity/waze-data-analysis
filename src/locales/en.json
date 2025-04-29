@@ -174,5 +174,7 @@
 
   "or": "or",
 
-  "clear.route": "Clear route"
+  "clear.route": "Clear route",
+
+  "traffic.useTrafficData": "Use traffic data"
 }

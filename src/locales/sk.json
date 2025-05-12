@@ -175,5 +175,8 @@
 
   "clear.route": "Vymaž trasu",
 
-  "traffic.useTrafficData": "Použiť dopravné dáta"
+  "traffic.useTrafficData": "Použiť dopravné dáta",
+
+  "route.length": "Dĺžka",
+  "route.duration": "Doba"
 }

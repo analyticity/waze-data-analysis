@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, useMapEvents, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, useMapEvents, Marker, Popup, Polyline } from 'react-leaflet';
 import L, { Map as LeafletMap, icon } from 'leaflet';
 import { dataContext, filterContext, routeContext, streetContext } from '../utils/contexts';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { drawOnMap } from '../utils/map';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { AdressPoint, Coord } from '../types/baseTypes';
 import dayjs from 'dayjs';
+import { Card } from 'antd';
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -74,6 +75,7 @@ const Map = ({
   const { filter, setNewFilter } = useContext(filterContext);
   const { coordinates, setNewCoordinates, setNewRoute, route } = useContext(routeContext);
   const { setXAxisData, setJamsData, setAlertData } = useContext(dataContext);
+  const [routeInfo, setRouteInfo] = useState<{ length: number; time: number }>({ length: 0, time: 0 });
 
   const MapClickEvent = () => {
     const handleContextMenu = (e) => {
@@ -152,6 +154,13 @@ const Map = ({
             setNewRoute((prevData) => {
               return [...prevData, ...response.route];
             });
+
+            // Update route info
+            setRouteInfo(prev => ({
+              length: prev.length + (response.length || 0),
+              time: prev.time + (response.time || 0)
+            }));
+
             const data = await get_data_delay_alerts(filter, new_route, newStreetsInRoute2);
 
             setJamsData(data.jams);
@@ -255,6 +264,48 @@ const Map = ({
           </MarkerClusterGroup>
         )}
       </MapContainer>
+      {mapMode === 'route' && coordinates.length > 0 && (
+        <Card
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            zIndex: 1000,
+            padding: '1px 4px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            border: '1px solid #ccc',
+            backgroundColor: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0px',
+            lineHeight: '1.1'
+          }}
+        >
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            gap: '2px',
+            paddingBottom: '1px',
+            marginBottom: '1px',
+            color: '#d4041c'
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+            </svg>
+            <span>{t('sidebar.route')}</span>
+          </div>
+          <div>{t('route.length')}: {routeInfo.length < 1000 
+            ? new Intl.NumberFormat('en-US', { style: 'unit', unit: 'meter', maximumFractionDigits: 1 }).format(routeInfo.length)
+            : new Intl.NumberFormat('en-US', { style: 'unit', unit: 'kilometer', maximumFractionDigits: 1 }).format(routeInfo.length / 1000)}
+          </div>
+          <div>{t('route.duration')}: {routeInfo.time < 60
+            ? new Intl.NumberFormat('en-US', { style: 'unit', unit: 'second', maximumFractionDigits: 1 }).format(routeInfo.time)
+            : new Intl.NumberFormat('en-US', { style: 'unit', unit: 'minute', maximumFractionDigits: 1 }).format(routeInfo.time / 60)}
+          </div>
+        </Card>
+      )}
     </>
   );
 };

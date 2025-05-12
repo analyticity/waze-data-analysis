@@ -34,6 +34,25 @@ type Props = {
   useTrafficData: boolean;
 };
 
+// Function to create a numbered marker icon
+const createNumberedMarker = (number: number) => {
+  return L.divIcon({
+    className: 'custom-div-icon',
+    html: `
+      <div style="position: relative;">
+        <svg xmlns="http://www.w3.org/2000/svg" height="50" viewBox="0 -960 960 960" width="50">
+          <path d="M480-80Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Z" fill="#d4041c"/>
+        </svg>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -65%); color: white; font-size: 16px; font-weight: 600;">
+          ${number}
+        </div>
+      </div>
+    `,
+    iconSize: [50, 50],
+    iconAnchor: [25, 50],
+  });
+};
+
 const Map = ({
   mapMode,
   api,
@@ -67,7 +86,7 @@ const Map = ({
         const map = mapRef.current;
 
         if (mapMode === 'route') {
-          const marker = L.marker([e.latlng.lat, e.latlng.lng], { icon: pin });
+          const marker = L.marker([e.latlng.lat, e.latlng.lng], { icon: createNumberedMarker(coordinates.length + 1) });
           marker.addTo(map);
 
           const coord: Coord = {

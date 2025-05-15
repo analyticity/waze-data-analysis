@@ -179,5 +179,6 @@
   "traffic.useTrafficData": "Use traffic data",
 
   "route.length": "Length",
-  "route.duration": "Duration"
+  "route.duration": "Duration",
+  "route.duration.withoutTraffic": "Duration (no traffic)"
 }

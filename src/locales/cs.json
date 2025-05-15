@@ -178,5 +178,6 @@
   "traffic.useTrafficData": "Použít dopravní data",
 
   "route.length": "Délka",
-  "route.duration": "Doba"
+  "route.duration": "Doba jízdy",
+  "route.duration.withoutTraffic": "Doba jízdy (bez dopravy)"
 }

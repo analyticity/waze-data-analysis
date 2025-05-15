@@ -75,7 +75,15 @@ const Map = ({
   const { filter, setNewFilter } = useContext(filterContext);
   const { coordinates, setNewCoordinates, setNewRoute, route } = useContext(routeContext);
   const { setXAxisData, setJamsData, setAlertData } = useContext(dataContext);
-  const [routeInfo, setRouteInfo] = useState<{ length: number; time: number }>({ length: 0, time: 0 });
+  const [routeInfo, setRouteInfo] = useState<{ 
+    length: number; 
+    timeWithTraffic: number;
+    timeWithoutTraffic: number;
+  }>({ 
+    length: 0, 
+    timeWithTraffic: 0,
+    timeWithoutTraffic: 0 
+  });
 
   const MapClickEvent = () => {
     const handleContextMenu = (e) => {
@@ -158,7 +166,8 @@ const Map = ({
             // Update route info
             setRouteInfo(prev => ({
               length: prev.length + (response.length || 0),
-              time: prev.time + (response.time || 0)
+              timeWithTraffic: prev.timeWithTraffic + (response.time_with_traffic || 0),
+              timeWithoutTraffic: prev.timeWithoutTraffic + (response.time_without_traffic || 0)
             }));
 
             const data = await get_data_delay_alerts(filter, new_route, newStreetsInRoute2);
@@ -300,9 +309,14 @@ const Map = ({
             ? new Intl.NumberFormat('en-US', { style: 'unit', unit: 'meter', maximumFractionDigits: 1 }).format(routeInfo.length)
             : new Intl.NumberFormat('en-US', { style: 'unit', unit: 'kilometer', maximumFractionDigits: 1 }).format(routeInfo.length / 1000)}
           </div>
-          <div>{t('route.duration')}: {routeInfo.time < 60
-            ? new Intl.NumberFormat('en-US', { style: 'unit', unit: 'second', maximumFractionDigits: 1 }).format(routeInfo.time)
-            : new Intl.NumberFormat('en-US', { style: 'unit', unit: 'minute', maximumFractionDigits: 1 }).format(routeInfo.time / 60)}
+          <div>{t('route.duration')}: {routeInfo.timeWithTraffic < 60
+            ? new Intl.NumberFormat('en-US', { style: 'unit', unit: 'second', maximumFractionDigits: 1 }).format(routeInfo.timeWithTraffic)
+            : new Intl.NumberFormat('en-US', { style: 'unit', unit: 'minute', maximumFractionDigits: 1 }).format(routeInfo.timeWithTraffic / 60)}
+          </div>
+          <div style={{ color: '#666', fontSize: '12px' }}>
+            {t('route.duration.withoutTraffic')}: {routeInfo.timeWithoutTraffic < 60
+            ? new Intl.NumberFormat('en-US', { style: 'unit', unit: 'second', maximumFractionDigits: 1 }).format(routeInfo.timeWithoutTraffic)
+            : new Intl.NumberFormat('en-US', { style: 'unit', unit: 'minute', maximumFractionDigits: 1 }).format(routeInfo.timeWithoutTraffic / 60)}
           </div>
         </Card>
       )}

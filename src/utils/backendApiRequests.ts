@@ -1,4 +1,5 @@
-import backendApi from './api';
+import { backendApi } from './api';
+import { routingApi } from './api';
 import { Filter } from './contexts';
 import { queryFindStreet, queryStreetCoord, queryTime } from './queryBuilder';
 
@@ -128,8 +129,9 @@ export async function get_route(src_coord, dst_coord, filter: Filter) {
     dst_coord: [dst_coord.longitude, dst_coord.latitude],
     from_time: filter.fromDate,
     to_time: filter.toDate,
+    use_traffic: filter.use_traffic || false
   };
-  const response = await backendApi.post('find_route_by_coord/', data_route);
+  const response = await routingApi.post('find_route_by_coord/', data_route);
 
   return response.data;
 }

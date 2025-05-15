@@ -173,5 +173,11 @@
 
   "or": "alebo",
 
-  "clear.route": "Vymaž trasu"
+  "clear.route": "Vymaž trasu",
+
+  "traffic.useTrafficData": "Použiť dopravné dáta",
+
+  "route.length": "Dĺžka",
+  "route.duration": "Doba jazdy",
+  "route.duration.withoutTraffic": "Doba jazdy (bez dopravy)"
 }

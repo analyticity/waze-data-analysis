@@ -24,4 +24,16 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-export default backendApi;
+let routingApi: AxiosInstance;
+if (process.env.NODE_ENV !== 'production') {
+  routingApi = axios.create({
+    baseURL: 'http://127.0.0.1:8001/', // Dev env
+  });
+} else {
+  backendApi = axios.create({
+    baseURL: '', // Prod env
+  });
+}
+
+export { backendApi };
+export { routingApi };

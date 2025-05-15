@@ -7,6 +7,7 @@ export interface Filter {
   fromDate: string;
   toDate: string;
   streets: Array<string>;
+  use_traffic: boolean;
 }
 
 export interface FilterContext {
@@ -20,6 +21,7 @@ export const FILTER_DEFAULT_VALUE: FilterContext = {
     fromDate: dayjs().add(-7, 'd').format('YYYY-MM-DD'),
     toDate: dayjs().format('YYYY-MM-DD'),
     streets: [],
+    use_traffic: false
   },
   filter: null,
   setNewFilter: () => {},

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, useMapEvents, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, useMapEvents, Marker, Popup, Polyline } from 'react-leaflet';
 import L, { Map as LeafletMap, icon } from 'leaflet';
 import { dataContext, filterContext, routeContext, streetContext } from '../utils/contexts';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { drawOnMap } from '../utils/map';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { AdressPoint, Coord } from '../types/baseTypes';
 import dayjs from 'dayjs';
+import { Card } from 'antd';
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -31,6 +32,26 @@ type Props = {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   drawAlertsAnyway: any;
   buttonStyleAlerts: 'primary' | 'default';
+  useTrafficData: boolean;
+};
+
+// Function to create a numbered marker icon
+const createNumberedMarker = (number: number) => {
+  return L.divIcon({
+    className: 'custom-div-icon',
+    html: `
+      <div style="position: relative;">
+        <svg xmlns="http://www.w3.org/2000/svg" height="50" viewBox="0 -960 960 960" width="50">
+          <path d="M480-80Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Z" fill="#d4041c"/>
+        </svg>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -65%); color: white; font-size: 16px; font-weight: 600;">
+          ${number}
+        </div>
+      </div>
+    `,
+    iconSize: [50, 50],
+    iconAnchor: [25, 50],
+  });
 };
 
 const Map = ({
@@ -46,6 +67,7 @@ const Map = ({
   setMapMode,
   loading,
   setLoading,
+  useTrafficData,
 }: Props) => {
   const { t } = useTranslation();
   const { setNewStreetsInSelected, setNewStreetsInMap, setNewStreetsInRoute, streetsInRoute } =
@@ -53,6 +75,15 @@ const Map = ({
   const { filter, setNewFilter } = useContext(filterContext);
   const { coordinates, setNewCoordinates, setNewRoute, route } = useContext(routeContext);
   const { setXAxisData, setJamsData, setAlertData } = useContext(dataContext);
+  const [routeInfo, setRouteInfo] = useState<{ 
+    length: number; 
+    timeWithTraffic: number;
+    timeWithoutTraffic: number;
+  }>({ 
+    length: 0, 
+    timeWithTraffic: 0,
+    timeWithoutTraffic: 0 
+  });
 
   const MapClickEvent = () => {
     const handleContextMenu = (e) => {
@@ -65,7 +96,7 @@ const Map = ({
         const map = mapRef.current;
 
         if (mapMode === 'route') {
-          const marker = L.marker([e.latlng.lat, e.latlng.lng], { icon: pin });
+          const marker = L.marker([e.latlng.lat, e.latlng.lng], { icon: createNumberedMarker(coordinates.length + 1) });
           marker.addTo(map);
 
           const coord: Coord = {
@@ -93,7 +124,7 @@ const Map = ({
             };
             openNotification();
             setLoading(true);
-            const response = await get_route(last_two[0], last_two[1], filter);
+            const response = await get_route(last_two[0], last_two[1], { ...filter, use_traffic: useTrafficData });
 
             if (response.streets_coord.length < 1) {
               const removedCoord: Coord = coordinates.pop();
@@ -131,6 +162,14 @@ const Map = ({
             setNewRoute((prevData) => {
               return [...prevData, ...response.route];
             });
+
+            // Update route info
+            setRouteInfo(prev => ({
+              length: prev.length + (response.length || 0),
+              timeWithTraffic: prev.timeWithTraffic + (response.time_with_traffic || 0),
+              timeWithoutTraffic: prev.timeWithoutTraffic + (response.time_without_traffic || 0)
+            }));
+
             const data = await get_data_delay_alerts(filter, new_route, newStreetsInRoute2);
 
             setJamsData(data.jams);
@@ -234,6 +273,53 @@ const Map = ({
           </MarkerClusterGroup>
         )}
       </MapContainer>
+      {mapMode === 'route' && coordinates.length > 0 && (
+        <Card
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            zIndex: 1000,
+            padding: '1px 4px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            border: '1px solid #ccc',
+            backgroundColor: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0px',
+            lineHeight: '1.1'
+          }}
+        >
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            gap: '2px',
+            paddingBottom: '1px',
+            marginBottom: '1px',
+            color: '#d4041c'
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+            </svg>
+            <span>{t('sidebar.route')}</span>
+          </div>
+          <div>{t('route.length')}: {routeInfo.length < 1000 
+            ? new Intl.NumberFormat('en-US', { style: 'unit', unit: 'meter', maximumFractionDigits: 1 }).format(routeInfo.length)
+            : new Intl.NumberFormat('en-US', { style: 'unit', unit: 'kilometer', maximumFractionDigits: 1 }).format(routeInfo.length / 1000)}
+          </div>
+          <div>{t('route.duration')}: {routeInfo.timeWithTraffic < 60
+            ? new Intl.NumberFormat('en-US', { style: 'unit', unit: 'second', maximumFractionDigits: 1 }).format(routeInfo.timeWithTraffic)
+            : new Intl.NumberFormat('en-US', { style: 'unit', unit: 'minute', maximumFractionDigits: 1 }).format(routeInfo.timeWithTraffic / 60)}
+          </div>
+          <div style={{ color: '#666', fontSize: '12px' }}>
+            {t('route.duration.withoutTraffic')}: {routeInfo.timeWithoutTraffic < 60
+            ? new Intl.NumberFormat('en-US', { style: 'unit', unit: 'second', maximumFractionDigits: 1 }).format(routeInfo.timeWithoutTraffic)
+            : new Intl.NumberFormat('en-US', { style: 'unit', unit: 'minute', maximumFractionDigits: 1 }).format(routeInfo.timeWithoutTraffic / 60)}
+          </div>
+        </Card>
+      )}
     </>
   );
 };
